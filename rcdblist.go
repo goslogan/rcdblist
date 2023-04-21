@@ -17,7 +17,7 @@ type DBInfo struct {
 	PrivateEndpoint  string  `csv:"Private endpoint"`
 	MemoryLimit      float32 `csv:"Memory limit (MB)"`
 	MemoryUsed       float32 `csv:"Memory used (MB)"`
-	Throughput       int     `csv:"Throughput (Ops/sec)"`
+	Throughput       string  `csv:"Throughput (Ops/sec)"` // Contains commas in values
 	Modules          string  `csv:"Modules"`
 	Options          string  `csv:"Options"`
 	ShardType        string  `csv:"Shard type"`
@@ -30,7 +30,7 @@ func ParseDBList(input io.Reader) ([]*DBInfo, error) {
 
 	dbList := []*DBInfo{}
 
-	err := gocsv.Unmarshal(input, dbList)
+	err := gocsv.Unmarshal(input, &dbList)
 	return dbList, err
 
 }
