@@ -50,3 +50,23 @@ func (d *DBInfo) GetOptions() []string {
 		return strings.Split(d.Options, "; ")
 	}
 }
+
+func (d *DBInfo) Replication() bool {
+	for _, opt := range d.GetOptions() {
+		if opt == "In-Memory Replication" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (d *DBInfo) Persistence() bool {
+	for _, opt := range d.GetOptions() {
+		if opt == "Data Persistence" {
+			return true
+		}
+	}
+
+	return false
+}
