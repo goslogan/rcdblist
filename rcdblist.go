@@ -1,4 +1,4 @@
-package rcdblist
+package tamlib
 
 import (
 	"io"
