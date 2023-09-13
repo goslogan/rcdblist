@@ -1,12 +1,15 @@
-package tamlib
+package rcutils
 
 import (
+	"encoding/csv"
 	"io"
 	"strings"
 
-	"github.com/gocarina/gocsv"
+	"github.com/jszwec/csvutil"
 )
 
+// DBInfo represents a single line from the database export from Redis Cloud, representing
+// information about a single database.
 type DBInfo struct {
 	Status           string  `csv:"Status"`
 	DatabaseId       string  `csv:"Database ID"`
@@ -26,12 +29,42 @@ type DBInfo struct {
 	DataPriceHour    float32 `csv:"Database price ($/hr)"`
 }
 
-func ParseDBList(input io.Reader) ([]*DBInfo, error) {
+// Databases parses and reads the databases export from Redis Cloud.
+func Databases(input io.Reader) ([]*DBInfo, error) {
 
-	dbList := []*DBInfo{}
+	var dbList []*DBInfo
+	reader := csv.NewReader(input)
+	if decoder, err := csvutil.NewDecoder(reader); err != nil {
+		return nil, err
+	} else {
+		decoder.Map = func(field, col string, v any) string {
+			if field == "N/A" {
+				if _, ok := v.(float32); ok {
+					return "0.0"
+				} else if _, ok := v.(int); ok {
+					return "0"
+				} else {
+					return field
+				}
+			} else if field == "Fixed price" {
+				return "NaN"
+			}
+			return field
+		}
 
-	err := gocsv.Unmarshal(input, &dbList)
-	return dbList, err
+		for {
+			var db DBInfo
+			if err := decoder.Decode(&db); err == io.EOF {
+				break
+			} else if err != nil {
+				return nil, err
+			} else {
+				dbList = append(dbList, &db)
+			}
+		}
+	}
+
+	return dbList, nil
 
 }
 
@@ -64,6 +97,16 @@ func (d *DBInfo) Replication() bool {
 func (d *DBInfo) Persistence() bool {
 	for _, opt := range d.GetOptions() {
 		if opt == "Data Persistence" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (d *DBInfo) Search() bool {
+	for _, opt := range d.GetOptions() {
+		if strings.Contains(opt, "Search") {
 			return true
 		}
 	}

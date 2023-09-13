@@ -1,5 +1,5 @@
-module github.com/goslogan/tamlib
+module github.com/goslogan/rcutils
 
 go 1.20
 
-require github.com/gocarina/gocsv v0.0.0-20230406101422-6445c2b15027
+require github.com/jszwec/csvutil v1.8.0
